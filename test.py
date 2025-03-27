@@ -7,13 +7,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 import random
 from selenium.webdriver.common.action_chains import ActionChains
+import account_manager
 
 # Configuration du WebDriver (ex: Chrome)
 options = Options()
 options.add_experimental_option("detach", True)
 driver = webdriver.Chrome(options=options)
 
-BASE_URL = "https://www.lafoirfouille.fr"
+BASE_URL = "https://local.lafoirfouille.fr:3012/"
 driver.maximize_window()
 
 def accepter_cookies(driver):
@@ -109,6 +110,19 @@ def choisir_produit_aleatoire(driver):
     except Exception as e:
         print(f"Erreur lors de la sélection et du clic sur un produit : {e}")
 
+
+
+def ajouter_au_panier(driver):
+    """Clique sur le bouton 'Ajouter au panier'."""
+    try:
+        ajouter_panier_btn = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Ajouter au panier')]"))
+        )
+        ajouter_panier_btn.click()
+        print("Bouton 'Ajouter au panier' cliqué avec succès !")
+    except Exception as e:
+        print(f"Erreur lors du clic sur le bouton 'Ajouter au panier' : {e}")
+
 # Étape 1: Ouvrir la page d'accueil
 driver.get(BASE_URL)
 time.sleep(2)
@@ -129,5 +143,25 @@ choisir_sous_sous_categorie(driver)
 # Choisir un produit au hasard et cliquer dessus
 choisir_produit_aleatoire(driver)
 
+
+# Ajouter le produit au panier
+ajouter_au_panier(driver)
+
 # Garder le navigateur ouvert
 time.sleep(5)
+
+
+
+
+# ... (Configuration du WebDriver) ...
+
+user_data = account_manager.generate_user_data()
+account_manager.register_user(driver, "URL_INSCRIPTION", user_data)
+account_manager.save_user_data(user_data)
+
+# ... (Autres actions Selenium) ...
+
+users = account_manager.load_user_data()
+account_manager.authenticate_user(driver, "URL_CONNEXION", users[0])
+
+# ... (Suite des tests) ...
