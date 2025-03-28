@@ -32,7 +32,7 @@ def mon_compte_click(driver):
     except Exception as e:
         logging.error(f"Erreur lors du clic sur 'Mon compte' : {e}")
 
-def authenticate_user(driver, json_path="users.json", user_index=1):
+def authenticate_user(driver, json_path="users.json", user_index=4):
     """Remplit le formulaire de connexion avec les données d'un utilisateur."""
     try:
         # Charger les données utilisateur à partir du fichier JSON
@@ -52,7 +52,7 @@ def authenticate_user(driver, json_path="users.json", user_index=1):
             return False
 
         # Remplir le formulaire de connexion
-        input_email = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "j_username")))
+        input_email = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "j_username")))
         input_email.send_keys(user_data["email"])
         logging.info(f"Adresse e-mail '{user_data['email']}' remplie avec succès !")
 
@@ -75,6 +75,11 @@ def authenticate_user(driver, json_path="users.json", user_index=1):
         except Exception as e:
             print(f"Erreur lors de la sélection du bouton radio : {e}")
 
+        bouton_valider.click()
+        logging.info("Bouton 'VALIDER' cliqué avec succès !")
+
+
+        # test.accepter_cookies(driver)
 
         input_password = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "j_password")))
         input_password.clear()

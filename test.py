@@ -33,7 +33,6 @@ def accepter_cookies(driver):
 def gerer_popup_geolocalisation(driver):
     """Gère le popup de géolocalisation et les cookies si présents."""
     try:
-        # Attendre l'apparition du popup de géolocalisation ou de cookies
         WebDriverWait(driver, 10).until(
             EC.any_of(
                 EC.visibility_of_element_located((By.ID, "popup_geoloc")),
@@ -41,10 +40,8 @@ def gerer_popup_geolocalisation(driver):
             )
         )
 
-        # Essayer d'accepter les cookies dès le début si possible
         accepter_cookies(driver)
 
-        # Vérifier et gérer le popup de géolocalisation
         try:
             popup = driver.find_element(By.ID, "popup_geoloc")
             print("Popup de géolocalisation détecté.")
