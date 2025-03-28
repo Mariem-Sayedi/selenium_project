@@ -32,7 +32,7 @@ def mon_compte_click(driver):
     except Exception as e:
         logging.error(f"Erreur lors du clic sur 'Mon compte' : {e}")
 
-def authenticate_user(driver, json_path="users.json", user_index=0):
+def authenticate_user(driver, json_path="users.json", user_index=1):
     """Remplit le formulaire de connexion avec les données d'un utilisateur."""
     try:
         # Charger les données utilisateur à partir du fichier JSON
@@ -52,14 +52,29 @@ def authenticate_user(driver, json_path="users.json", user_index=0):
             return False
 
         # Remplir le formulaire de connexion
-        input_email = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "j_username")))
-        input_email.clear()
+        input_email = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.ID, "j_username")))
         input_email.send_keys(user_data["email"])
         logging.info(f"Adresse e-mail '{user_data['email']}' remplie avec succès !")
 
         bouton_valider = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "next_button")))
         bouton_valider.click()
         logging.info("Bouton 'VALIDER' cliqué avec succès !")
+
+
+        #selectionner le bouton radio je crée un compte
+        try:
+            # Attendre que l'élément soit cliquable
+            radio_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.ID, "connexion_nocompte"))
+            )
+            if not radio_button.is_selected():
+                radio_button.click()
+                print("Le bouton radio 'Je crée mon compte' a été coché avec succès !")
+            else:
+                print("Le bouton radio est déjà sélectionné.")
+        except Exception as e:
+            print(f"Erreur lors de la sélection du bouton radio : {e}")
+
 
         input_password = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "j_password")))
         input_password.clear()
