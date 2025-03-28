@@ -8,47 +8,81 @@ from selenium.webdriver.common.keys import Keys
 import random
 from selenium.webdriver.common.action_chains import ActionChains
 import account_manager
+import driver_manager
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
-# Configuration du WebDriver (ex: Chrome)
-options = Options()
-options.add_experimental_option("detach", True)
-driver = webdriver.Chrome(options=options)
 
-BASE_URL = "https://local.lafoirfouille.fr:3012/"
+
+
+# Configuration du WebDriver (Chrome)
+driver = driver_manager.create_driver()
+
+BASE_URL = driver_manager.get_base_url()
 driver.maximize_window()
 
 def accepter_cookies(driver):
     """Accepte les cookies sur la page."""
     try:
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 20)
         accept_button = wait.until(EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler")))
         accept_button.click()
         print("Bouton d'acceptation des cookies cliqué avec succès !")
-    except Exception as e:
-        print(f"Erreur lors du clic sur le bouton d'acceptation des cookies : {e}")
-
-def gerer_popup_geolocalisation(driver):
-    """Gère le popup de géolocalisation si présent."""
-    try:
-        popup = WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.ID, "popup_geoloc")))
-        print("Popup de géolocalisation détecté.")
-
-        input_element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "locationForSearch")))
-        input_element.clear()
-        input_element.send_keys("13000")
-        input_element.send_keys(Keys.RETURN)
-        print("Valeur de localisation entrée avec succès !")
-
-        choisir_magasin_btn = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='btn']/a[contains(text(), 'Choisir')]")))
-        choisir_magasin_btn.click()
-        print("Bouton 'Choisir ce magasin' cliqué avec succès !")
-
-        WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.ID, "popup_geoloc")))
-        print("Popup de géolocalisation géré avec succès.")
         return True
     except Exception as e:
-        print(f"Erreur lors de la gestion du popup de géolocalisation : {e}")
+        print(f"Erreur lors du clic sur le bouton d'acceptation des cookies : {e}")
         return False
+
+def gerer_popup_geolocalisation(driver):
+    """Gère le popup de géolocalisation et les cookies si présents."""
+    try:
+        # Attendre l'apparition du popup de géolocalisation ou de cookies
+        WebDriverWait(driver, 10).until(
+            EC.any_of(
+                EC.visibility_of_element_located((By.ID, "popup_geoloc")),
+                EC.visibility_of_element_located((By.ID, "onetrust-accept-btn-handler"))
+            )
+        )
+
+        # Essayer d'accepter les cookies dès le début si possible
+        accepter_cookies(driver)
+
+        # Vérifier et gérer le popup de géolocalisation
+        try:
+            popup = driver.find_element(By.ID, "popup_geoloc")
+            print("Popup de géolocalisation détecté.")
+
+            input_element = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "locationForSearch"))
+            )
+            input_element.clear()
+            input_element.send_keys("13000")
+            input_element.send_keys(Keys.RETURN)
+            print("Valeur de localisation entrée avec succès !")
+
+            # Accepter les cookies à nouveau au cas où il apparaît maintenant
+            accepter_cookies(driver)
+
+            # Cliquer sur "Choisir ce magasin"
+            choisir_magasin_btn = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//div[@class='btn']/a[contains(text(), 'Choisir')]"))
+            )
+            choisir_magasin_btn.click()
+            print("Bouton 'Choisir ce magasin' cliqué avec succès !")
+
+            # Attendre la fermeture du popup
+            WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.ID, "popup_geoloc")))
+            print("Popup de géolocalisation géré avec succès.")
+
+        except NoSuchElementException:
+            print("Popup de géolocalisation non trouvé, vérification du popup de cookies.")
+            accepter_cookies(driver)
+
+    except TimeoutException:
+        print("Ni le popup de géolocalisation ni le popup de cookies n'ont été trouvés.")
+    except Exception as e:
+        print(f"Erreur lors de la gestion du popup de géolocalisation : {e}")
+
+
 
 def cliquer_menu(driver):
     """Clique sur l'icône du menu."""
@@ -110,8 +144,6 @@ def choisir_produit_aleatoire(driver):
     except Exception as e:
         print(f"Erreur lors de la sélection et du clic sur un produit : {e}")
 
-
-
 def ajouter_au_panier(driver):
     """Clique sur le bouton 'Ajouter au panier'."""
     try:
@@ -123,45 +155,40 @@ def ajouter_au_panier(driver):
     except Exception as e:
         print(f"Erreur lors du clic sur le bouton 'Ajouter au panier' : {e}")
 
-# Étape 1: Ouvrir la page d'accueil
-driver.get(BASE_URL)
-time.sleep(2)
 
-# Accepter les cookies
-accepter_cookies(driver)
+
+
+
+def main():
+
+  # Étape 1: Ouvrir la page d'accueil
+  driver.get(BASE_URL)
+  time.sleep(2)
 
 # Gérer le popup de géolocalisation
-if gerer_popup_geolocalisation(driver):
-    time.sleep(2)
+  if gerer_popup_geolocalisation(driver):
+      time.sleep(2)
 
 # Naviguer dans le menu et choisir les catégories
-cliquer_menu(driver)
-choisir_categorie(driver)
-choisir_sous_categorie(driver)
-choisir_sous_sous_categorie(driver)
+# cliquer_menu(driver)
+# choisir_categorie(driver)
+# choisir_sous_categorie(driver)
+# choisir_sous_sous_categorie(driver)
 
-# Choisir un produit au hasard et cliquer dessus
-choisir_produit_aleatoire(driver)
+# # Choisir un produit au hasard et cliquer dessus
+# choisir_produit_aleatoire(driver)
 
+# # Ajouter le produit au panier
+# ajouter_au_panier(driver)
 
-# Ajouter le produit au panier
-ajouter_au_panier(driver)
-
-# Garder le navigateur ouvert
-time.sleep(5)
-
-
+# Inscrire un nouvel utilisateur
+  account_manager.mon_compte_click(driver)
+  account_manager.authenticate_user(driver)
 
 
-# ... (Configuration du WebDriver) ...
 
-user_data = account_manager.generate_user_data()
-account_manager.register_user(driver, "URL_INSCRIPTION", user_data)
-account_manager.save_user_data(user_data)
+# Fermer le navigateur
+# driver_manager.quit_driver(driver)
 
-# ... (Autres actions Selenium) ...
-
-users = account_manager.load_user_data()
-account_manager.authenticate_user(driver, "URL_CONNEXION", users[0])
-
-# ... (Suite des tests) ...
+if __name__ == "__main__":
+    main()

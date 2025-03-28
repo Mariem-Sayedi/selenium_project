@@ -1,8 +1,15 @@
-from selenium import webdriver
 from faker import Faker
 import json
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+import logging
 
 fake = Faker()
+
+# Configuration de la journalisation
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def generate_user_data():
     """Génère des données utilisateur fictives."""
@@ -11,27 +18,86 @@ def generate_user_data():
         "password": fake.password(),
     }
 
-def register_user(driver, registration_url, user_data):
-    """Inscrit un nouvel utilisateur."""
-    # ... (Code Selenium pour remplir et soumettre le formulaire d'inscription) ...
+def mon_compte_click(driver):
+    """Clique sur l'icône 'Mon compte'."""
+    try:
+        # Attendre que l'élément soit cliquable
+        mon_compte_btn = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[@class='icon header-compte']"))
+        )
+        # Cliquer sur l'élément
+        mon_compte_btn.click()
+        logging.info("Bouton 'Mon compte' cliqué avec succès !")
 
-def authenticate_user(driver, login_url, user_data):
-    """Authentifie un utilisateur existant."""
-    # ... (Code Selenium pour remplir et soumettre le formulaire de connexion) ...
+    except Exception as e:
+        logging.error(f"Erreur lors du clic sur 'Mon compte' : {e}")
+
+def authenticate_user(driver, json_path="users.json", user_index=0):
+    """Remplit le formulaire de connexion avec les données d'un utilisateur."""
+    try:
+        # Charger les données utilisateur à partir du fichier JSON
+        users = load_user_data(json_path)
+
+        # Vérifier si l'index utilisateur est valide
+        if not isinstance(users, list) or user_index >= len(users):
+            logging.error("Index utilisateur invalide ou fichier JSON non valide.")
+            return False
+
+        # Récupérer les données utilisateur
+        user_data = users[user_index]
+
+        # Vérifier si les données utilisateur sont valides
+        if not isinstance(user_data, dict) or "email" not in user_data or "password" not in user_data:
+            logging.error(f"Données utilisateur invalides à l'index {user_index}.")
+            return False
+
+        # Remplir le formulaire de connexion
+        input_email = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "j_username")))
+        input_email.clear()
+        input_email.send_keys(user_data["email"])
+        logging.info(f"Adresse e-mail '{user_data['email']}' remplie avec succès !")
+
+        bouton_valider = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "next_button")))
+        bouton_valider.click()
+        logging.info("Bouton 'VALIDER' cliqué avec succès !")
+
+        input_password = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "j_password")))
+        input_password.clear()
+        input_password.send_keys(user_data["password"])
+        logging.info("Champ mot de passe rempli avec succès !")
+
+        bouton_connexion = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "submit_button")))
+        bouton_connexion.click()
+        logging.info("Bouton de connexion cliqué avec succès !")
+
+        return True
+
+    except (TimeoutException, NoSuchElementException) as e:
+        logging.error(f"Élément introuvable ou délai d'attente dépassé : {e}")
+        return False
+
+    except Exception as e:
+        logging.error(f"Erreur lors du remplissage du formulaire : {e}")
+        return False
 
 def save_user_data(user_data, filename="users.json"):
     """Stocke les informations utilisateur dans un fichier JSON."""
-    with open(filename, "a") as f:
-        json.dump(user_data, f)
-        f.write("\n")
+    try:
+        with open(filename, "a") as f:
+            json.dump(user_data, f)
+            f.write("\n")
+        logging.info(f"Données utilisateur enregistrées dans {filename}")
+    except Exception as e:
+        logging.error(f"Erreur lors de l'enregistrement des données utilisateur : {e}")
 
 def load_user_data(filename="users.json"):
     """Charge les informations utilisateur à partir d'un fichier JSON."""
-    users = []
     try:
         with open(filename, "r") as f:
-            for line in f:
-                users.append(json.loads(line))
+            return json.load(f)
     except FileNotFoundError:
-        pass
-    return users
+        logging.warning(f"Fichier {filename} non trouvé. Retourne une liste vide.")
+        return []
+    except json.JSONDecodeError:
+        logging.error(f"Erreur de décodage JSON dans {filename}. Assurez-vous que le fichier contient du JSON valide.")
+        return []
