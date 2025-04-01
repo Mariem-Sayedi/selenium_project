@@ -5,21 +5,69 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import logging
+import time
+import driver_manager
+from selenium.webdriver.support.ui import Select
+import random
+import string
+from popups import gerer_popup_geolocalisation
 
-fake = Faker()
+# import test
+
+REGISTER_URL = "https://www.lafoirfouille.fr/register"
+LOGIN_URL = "https://www.lafoirfouille.fr/login"
+
+driver = driver_manager.create_driver()
+driver.maximize_window()
+
+
+
+
+
 
 # Configuration de la journalisation
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+
+
+
+def generate_secure_password():
+    faker = Faker()
+    
+    while True:
+        password = faker.password(length=12, special_chars=True, digits=True, upper_case=True, lower_case=True)
+        
+        # Vérifier les critères
+        if (len(password) >= 8 and
+            any(c.isdigit() for c in password) and
+            any(c.isalpha() for c in password) and
+            sum(1 for c in password if c in string.punctuation) >= 8):
+            return password
+
+
+
+
+
+
 def generate_user_data():
     """Génère des données utilisateur fictives."""
+    fake = Faker("fr_FR")   
     return {
         "email": fake.email(),
-        "password": fake.password(),
+        "password": generate_secure_password(),
+        "gender": fake.random_element(elements=("Male", "Female")), 
+        "first_name": fake.first_name(),
+        "last_name": fake.last_name(),
+        "birthday": fake.date_of_birth().strftime('%Y-%m-%d'),
+        "phone_number": fake.phone_number(),
+
     }
 
 def mon_compte_click(driver):
     """Clique sur l'icône 'Mon compte'."""
+
+
+
     try:
         # Attendre que l'élément soit cliquable
         mon_compte_btn = WebDriverWait(driver, 10).until(
@@ -32,7 +80,93 @@ def mon_compte_click(driver):
     except Exception as e:
         logging.error(f"Erreur lors du clic sur 'Mon compte' : {e}")
 
-def authenticate_user(driver, json_path="users.json", user_index=4):
+
+def register(driver, json_path="users.json", user_index=0):
+    driver.get(REGISTER_URL)
+    """Remplit le formulaire de connexion avec les données d'un utilisateur."""
+
+    
+    time.sleep(130)
+    gerer_popup_geolocalisation(driver)
+    time.sleep(80)
+
+    try:
+        # Charger les données utilisateur à partir du fichier JSON
+        users = load_user_data(json_path)
+
+        # Vérifier si l'index utilisateur est valide
+        if not isinstance(users, list) or user_index >= len(users):
+            logging.error("Index utilisateur invalide ou fichier JSON non valide.")
+            return False
+
+        # Récupérer les données utilisateur
+        user_data = users[user_index]
+
+        # Vérifier si les données utilisateur sont valides
+        if not isinstance(user_data, dict) or "email" not in user_data or "password" not in user_data:
+            logging.error(f"Données utilisateur invalides à l'index {user_index}.")
+            return False
+
+
+        # Remplir le formulaire de connexion
+        input_email = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "registerForm.email")))
+        input_email.send_keys(user_data["email"])
+        logging.info(f"Adresse e-mail '{user_data['email']}' remplie avec succès !")
+
+        input_password = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "password")))
+        input_password.send_keys(user_data["password"])
+        logging.info(f"password '{user_data['password']}' remplie avec succès !")
+
+        input_check_mdp = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "check_mdp")))
+        input_check_mdp.send_keys(user_data["password"])
+        logging.info(f"check_mdp '{user_data['password']}' remplie avec succès !")
+        
+        input_first_name = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "creation_prenom")))
+        input_first_name.send_keys(user_data["first_name"])
+        logging.info(f"first_name '{user_data['first_name']}' remplie avec succès !")
+
+        input_last_name = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "creation_nom")))
+        input_last_name.send_keys(user_data["last_name"])
+        logging.info(f"last_name '{user_data['last_name']}' remplie avec succès !")
+
+        day_select = Select(driver.find_element(By.ID, "select_day").find_element(By.TAG_NAME, "select"))
+        random_day = random.choice([str(i) for i in range(1, 32)])
+        day_select.select_by_value(random_day)
+
+        month_select = Select(driver.find_element(By.ID, "select_month").find_element(By.TAG_NAME, "select"))
+        random_month = random.choice([str(i) for i in range(1, 13)])
+        month_select.select_by_value(random_month)
+
+        year_select = Select(driver.find_element(By.ID, "select_year").find_element(By.TAG_NAME, "select"))
+        random_year = random.choice([str(i) for i in range(1920, 2020)])
+        year_select.select_by_value(random_year)
+        
+        input_phone_number = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "creation_portable")))
+        input_phone_number.send_keys(user_data["phone_number"])
+        logging.info(f"phone_number '{user_data['phone_number']}' remplie avec succès !")
+        time.sleep(20)
+
+        checkbox = driver.find_element(By.ID, "creation_fid")
+        if not checkbox.is_selected():
+            checkbox.click()
+
+        validate_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "bouton")))
+        validate_button.click()    
+        logging.info("Bouton 'VALIDER'  cliqué avec succès !")
+    except Exception as e:
+        logging.error(f"Erreur lors du remplissage du formulaire : {e}")
+        return False
+
+
+
+
+def login(driver, json_path="users.json", user_index=0):
+    driver.get(LOGIN_URL)
+     
+    time.sleep(10)
+    gerer_popup_geolocalisation(driver)
+    time.sleep(40)
+
     """Remplit le formulaire de connexion avec les données d'un utilisateur."""
     try:
         # Charger les données utilisateur à partir du fichier JSON
@@ -55,38 +189,17 @@ def authenticate_user(driver, json_path="users.json", user_index=4):
         input_email = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "j_username")))
         input_email.send_keys(user_data["email"])
         logging.info(f"Adresse e-mail '{user_data['email']}' remplie avec succès !")
-
-        bouton_valider = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "next_button")))
-        bouton_valider.click()
-        logging.info("Bouton 'VALIDER' cliqué avec succès !")
-
-
-        #selectionner le bouton radio je crée un compte
-        try:
-            # Attendre que l'élément soit cliquable
-            radio_button = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.ID, "connexion_nocompte"))
-            )
-            if not radio_button.is_selected():
-                radio_button.click()
-                print("Le bouton radio 'Je crée mon compte' a été coché avec succès !")
-            else:
-                print("Le bouton radio est déjà sélectionné.")
-        except Exception as e:
-            print(f"Erreur lors de la sélection du bouton radio : {e}")
-
-        bouton_valider.click()
-        logging.info("Bouton 'VALIDER' cliqué avec succès !")
-
-
-        # test.accepter_cookies(driver)
+        
+        bouton_valider1 = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "next_button")))
+        bouton_valider1.click()
+        logging.info("Bouton 'VALIDER' 1 cliqué avec succès !")
 
         input_password = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "j_password")))
         input_password.clear()
         input_password.send_keys(user_data["password"])
         logging.info("Champ mot de passe rempli avec succès !")
 
-        bouton_connexion = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "submit_button")))
+        bouton_connexion = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "valid_button")))
         bouton_connexion.click()
         logging.info("Bouton de connexion cliqué avec succès !")
 
@@ -99,6 +212,7 @@ def authenticate_user(driver, json_path="users.json", user_index=4):
     except Exception as e:
         logging.error(f"Erreur lors du remplissage du formulaire : {e}")
         return False
+    
 
 def save_user_data(user_data, filename="users.json"):
     """Stocke les informations utilisateur dans un fichier JSON."""
@@ -121,3 +235,16 @@ def load_user_data(filename="users.json"):
     except json.JSONDecodeError:
         logging.error(f"Erreur de décodage JSON dans {filename}. Assurez-vous que le fichier contient du JSON valide.")
         return []
+    
+
+
+
+def main():
+    # for i in range(500):
+    #   user_data = generate_user_data()
+    #   save_user_data(user_data)
+    # register(driver)
+    login(driver)
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,8 @@
+**1. Créer un environnement virtuel**
+
+python3 -m venv venv
+source venv/bin/activate #sur wsl ubuntu
+
+**2. Installer les dépendances**
+
+pip install -r requirements.txt
