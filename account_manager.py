@@ -11,11 +11,11 @@ from selenium.webdriver.support.ui import Select
 import random
 import string
 from popups import gerer_popup_geolocalisation
-
+import navigation
 # import test
 
-REGISTER_URL = "https://www.lafoirfouille.fr/register"
-LOGIN_URL = "https://www.lafoirfouille.fr/login"
+REGISTER_URL = "https://local.lafoirfouille.fr:3012/register"
+LOGIN_URL = "https://local.lafoirfouille.fr:3012/login"
 
 driver = driver_manager.create_driver()
 driver.maximize_window()
@@ -238,6 +238,23 @@ def load_user_data(filename="users.json"):
     
 
 
+def click_cart_icon(driver):
+    """Clique sur l'icône du panier."""
+    try:
+        cart_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@class, 'icon content-slot-lp')]")))
+        cart_element.click()
+        print("Panier cliqué avec succès !")
+        bouton_panier = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.LINK_TEXT, "Voir mon panier"))
+     )
+        bouton_panier.click()
+    except Exception as e:
+        print(f"Erreur lors du clic sur le Panier : {e}")
+
+
+
+
+
 
 def main():
     # for i in range(500):
@@ -245,6 +262,8 @@ def main():
     #   save_user_data(user_data)
     # register(driver)
     login(driver)
+#   navigation.click_cart_icon(driver)
+
 
 if __name__ == "__main__":
     main()

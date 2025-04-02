@@ -8,6 +8,8 @@ import random
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import driver_manager
 import json
+import account_manager
+from selenium.webdriver.support.ui import Select
 
 
 driver = driver_manager.create_driver()
@@ -76,6 +78,7 @@ def gerer_popup_geolocalisation(driver):
         print("Ni le popup de géolocalisation ni le popup de cookies n'ont été trouvés.")
     except Exception as e:
         print(f"Erreur lors de la gestion du popup de géolocalisation : {e}")
+
 
 
 
@@ -214,6 +217,53 @@ def ajouter_au_panier(driver):
 
 
 
+def click_cart_icon(driver):
+    """Clique sur l'icône du panier."""
+    try:
+        cart_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@class, 'icon content-slot-lp')]")))
+        cart_element.click()
+        print("Panier cliqué avec succès !")
+        button_connexion = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.LINK_TEXT, "Me connecter"))
+     )
+        button_connexion.click()
+
+    except Exception as e:
+        print(f"Erreur lors du clic sur le Panier : {e}")
+
+
+def remplir_champ_avec_selection(name, valeur):
+    # Trouver le champ et taper la valeur
+    champ = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, name)))
+    champ.send_keys(valeur)
+
+    # Attendre l'affichage du menu déroulant
+    WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "dropdown-menu")))
+
+    # Sélectionner la première option dans la liste
+    premiere_option = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".dropdown-menu li:first-child")))
+    premiere_option.click()
+
+
+def verifier_presence_iframe(driver):
+    """Vérifie la présence d'iframes sur une page web."""
+    try:
+        iframes = driver.find_elements(By.TAG_NAME, "iframe")
+        if len(iframes) > 0:
+            print(f"Il y a {len(iframes)} iframe(s) sur cette page.")
+            for iframe in iframes:
+                print(f"ID: {iframe.get_attribute('id')}, Nom: {iframe.get_attribute('name')}, Source: {iframe.get_attribute('src')}")
+            return True
+        else:
+            print("Aucun iframe trouvé sur cette page.")
+            return False
+
+    except Exception as e:
+        print(f"Erreur lors de la vérification des iframes : {e}")
+        return False
+
+
+
 def main():
   
   driver.get(BASE_URL)
@@ -221,13 +271,102 @@ def main():
   if gerer_popup_geolocalisation(driver):
         time.sleep(30)
     # Naviguer dans le menu et choisir les catégories
-  cliquer_menu(driver)
+#   cliquer_menu(driver)
 
-  for i in range(5000):
-    choisir_categorie(driver)
-    choisir_sous_categorie(driver)
-    choisir_sous_sous_categorie(driver)
+#   for i in range(5):
+#     choisir_categorie(driver)
+#     choisir_sous_categorie(driver)
+#     choisir_sous_sous_categorie(driver)
+#     choisir_produit_aleatoire(driver)
+#     ajouter_au_panier(driver)
+  click_cart_icon(driver)
+  account_manager.login(driver)
+  button_validation1 = WebDriverWait(driver, 10).until(
+  EC.element_to_be_clickable((By.LINK_TEXT, "VALIDER"))
+    )
+  button_validation1.click()
+
+  button_validation2 = WebDriverWait(driver, 10).until(
+  EC.element_to_be_clickable((By.LINK_TEXT, "Valider"))
+  )
+  button_validation2.click()
+  
+
+
+  try:
+       # Localiser la checkbox
+    checkbox = WebDriverWait(driver, 50).until(
+    EC.element_to_be_clickable((By.ID, "test"))
+)
+
+# Cliquer sur la checkbox
+    checkbox.click()
+
+# Vérifier l'état de la checkbox
+    if checkbox.is_selected():
+        print("La checkbox est cochée.")
+    else:
+        print("La checkbox n'est pas cochée.")
+# Click on the checkbox element
+        # checkbox.click()
+
+#         # Attendre que le bouton de paiement soit présent et visible
+#         button_pay2 = WebDriverWait(driver, 30).until(
+#             EC.visibility_of_element_located((By.CLASS_NAME, "cta-principal cta-desactive"))
+#         )
+
+#         # Utiliser JavaScript pour forcer le clic
+#         driver.execute_script("arguments[0].click();", button_pay2)
+#         print("Bouton de paiement cliqué avec succès !")
+
+  except TimeoutException:
+        print("Erreur : L'iframe, la case à cocher ou le bouton de paiement n'a pas été trouvé dans le temps imparti.")
+  except NoSuchElementException:
+        print("Erreur : L'élément n'a pas été trouvé.")
+  except Exception as e:
+        print(f"Erreur paiement : {e}")
+
+
+  button_pay2 = WebDriverWait(driver, 20).until(
+  EC.element_to_be_clickable((By.CLASS_NAME, "cta-principal cta-desactive"))
+  )
+  button_pay2.click()
+# except Exception as e:
+#        print(f"Erreur paiement : {e}")
+    
 
 
 if __name__ == "__main__":
   main()
+
+
+#   try:
+#      select_element = WebDriverWait(driver, 10).until(
+#          EC.presence_of_element_located((By.XPATH, "//select[@title='Pays']"))
+#      )
+
+#      select = Select(select_element)
+#      select.select_by_value("FR")
+#      print("Pays sélectionné avec succès !")
+
+ 
+#      remplir_champ_avec_selection("locality", "75001 Paris")
+#      remplir_champ_avec_selection("streetName", "Rue de Rivoli")
+#      remplir_champ_avec_selection("streetNumber", "10")
+
+
+#      input_buildingName = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "building")))
+#      input_buildingName.send_keys("A") 
+#      input_buildingName.send_keys(Keys.RETURN)
+
+#      input_line3 = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "line3")))
+#      input_line3.send_keys("5B") 
+#      input_line3.send_keys(Keys.RETURN)
+     
+
+#        button_pay1 = WebDriverWait(driver, 20).until(
+#        EC.element_to_be_clickable((By.CLASS_NAME, "adress btn-submit red "))
+#        )
+#        button_pay1.click()
+#   except Exception as e:
+#         print(f"Erreur selection : {e}")

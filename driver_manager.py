@@ -4,8 +4,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 
-# BASE_URL = "https://local.lafoirfouille.fr:3012/"
-BASE_URL = "https://www.lafoirfouille.fr"
+BASE_URL = "https://local.lafoirfouille.fr:3012/"
+# BASE_URL = "https://www.lafoirfouille.fr"
 
 def create_driver():
     """Crée et renvoie une instance de WebDriver."""
