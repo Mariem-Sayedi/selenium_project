@@ -1,0 +1,120 @@
+
+[
+{
+    "email": "adrienbenard@example.org",
+    "password": "#2U@^I+^$a$!",
+    "gender": "Male",
+    "first_name": "Roland",
+    "last_name": "Le Roux",
+    "birthday": "1987-11-08",
+    "phone_number": "0612345678"
+},
+{
+    "email": "louisemaillot@example.com",
+    "password": "#$)3q@r)^^)J",
+    "gender": "Female",
+    "first_name": "Fruueduuerique",
+    "last_name": "Brun",
+    "birthday": "2017-07-15",
+    "phone_number": "0612345678"
+},
+{
+    "email": "suzannemasse@example.org",
+    "password": "ij&5Q(!)$^_^",
+    "gender": "Male",
+    "first_name": "Dominique",
+    "last_name": "Delaunay",
+    "birthday": "1962-12-16",
+    "phone_number": "0612345678"
+},
+{
+    "email": "theodore66@example.net",
+    "password": ")0^O&%!b+)D!",
+    "gender": "Female",
+    "first_name": "Huu00e9luu00e8ne",
+    "last_name": "Da Costa",
+    "birthday": "1911-01-29",
+    "phone_number": "0612345678"
+},
+{
+    "email": "xchevalier@example.net",
+    "password": "4o*)!e)__()Y",
+    "gender": "Female",
+    "first_name": "Camille",
+    "last_name": "Joly",
+    "birthday": "2010-12-04",
+    "phone_number": "0612345678"
+},
+{
+    "email": "raymond61@example.com",
+    "password": "+*!&R1^b((9^",
+    "gender": "Male",
+    "first_name": "Jean",
+    "last_name": "Rossi",
+    "birthday": "1986-11-07",
+    "phone_number": "0612345678"
+},
+{
+    "email": "ulebrun@example.org",
+    "password": "+p_%%Dn%5^)#",
+    "gender": "Male",
+    "first_name": "Aurore",
+    "last_name": "Gallet",
+    "birthday": "1911-09-29",
+    "phone_number": "0612345678"
+},
+{
+    "email": "wsauvage@example.net",
+    "password": "@4!%(cw#@)D*",
+    "gender": "Female",
+    "first_name": "Dominique",
+    "last_name": "Boulanger",
+    "birthday": "1954-11-10",
+    "phone_number": "0612345678"
+},
+{
+    "email": "gabriel50@example.com",
+    "password": "#@)@K*$l$*1I",
+    "gender": "Male",
+    "first_name": "William",
+    "last_name": "Luu00e9ger",
+    "birthday": "1941-05-06",
+    "phone_number": "0612345678"
+},
+{
+    "email": "joseph96@example.net",
+    "password": "2@&5*Bz!%*%$",
+    "gender": "Male",
+    "first_name": "Cuu00e9cile",
+    "last_name": "Le Gall",
+    "birthday": "1940-01-10",
+    "phone_number": "0612345678"
+},
+{
+    "email": "zachariede-sousa@example.com",
+    "password": "+0P$$(!%@_w3",
+    "gender": "Female",
+    "first_name": "Georges",
+    "last_name": "Marion",
+    "birthday": "2008-05-18",
+    "phone_number": "0612345678"
+},
+{
+    "email": "arthur56@example.org",
+    "password": "@7Up(!s(^_+*",
+    "gender": "Female",
+    "first_name": "David",
+    "last_name": "Maruu00e9chal",
+    "birthday": "1909-10-24",
+    "phone_number": "0612345678"
+},
+{
+    "email": "maillardgabriel@example.org",
+    "password": "+)+v^j(#&3A&",
+    "gender": "Female",
+    "first_name": "Martin",
+    "last_name": "Caron",
+    "birthday": "2015-08-12",
+    "phone_number": "0612345678"
+}
+]

@@ -11,8 +11,7 @@ from selenium.webdriver.support.ui import Select
 import random
 import string
 from popups import gerer_popup_geolocalisation
-import navigation
-# import test
+
 
 REGISTER_URL = "https://local.lafoirfouille.fr:3012/register"
 LOGIN_URL = "https://local.lafoirfouille.fr:3012/login"
@@ -25,7 +24,6 @@ driver.maximize_window()
 
 
 
-# Configuration de la journalisation
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
@@ -81,7 +79,7 @@ def mon_compte_click(driver):
         logging.error(f"Erreur lors du clic sur 'Mon compte' : {e}")
 
 
-def register(driver, json_path="users.json", user_index=0):
+def register(driver, user_index, json_path="users.json"):
     driver.get(REGISTER_URL)
     """Remplit le formulaire de connexion avec les données d'un utilisateur."""
 
@@ -91,24 +89,19 @@ def register(driver, json_path="users.json", user_index=0):
     time.sleep(80)
 
     try:
-        # Charger les données utilisateur à partir du fichier JSON
         users = load_user_data(json_path)
 
-        # Vérifier si l'index utilisateur est valide
         if not isinstance(users, list) or user_index >= len(users):
             logging.error("Index utilisateur invalide ou fichier JSON non valide.")
             return False
 
-        # Récupérer les données utilisateur
         user_data = users[user_index]
 
-        # Vérifier si les données utilisateur sont valides
         if not isinstance(user_data, dict) or "email" not in user_data or "password" not in user_data:
             logging.error(f"Données utilisateur invalides à l'index {user_index}.")
             return False
 
 
-        # Remplir le formulaire de connexion
         input_email = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "registerForm.email")))
         input_email.send_keys(user_data["email"])
         logging.info(f"Adresse e-mail '{user_data['email']}' remplie avec succès !")
@@ -160,7 +153,7 @@ def register(driver, json_path="users.json", user_index=0):
 
 
 
-def login(driver, json_path="users.json", user_index=0):
+def login(driver, user_index=0, json_path="users6.json"):
     driver.get(LOGIN_URL)
      
     time.sleep(10)
@@ -169,23 +162,18 @@ def login(driver, json_path="users.json", user_index=0):
 
     """Remplit le formulaire de connexion avec les données d'un utilisateur."""
     try:
-        # Charger les données utilisateur à partir du fichier JSON
         users = load_user_data(json_path)
 
-        # Vérifier si l'index utilisateur est valide
         if not isinstance(users, list) or user_index >= len(users):
             logging.error("Index utilisateur invalide ou fichier JSON non valide.")
             return False
 
-        # Récupérer les données utilisateur
         user_data = users[user_index]
 
-        # Vérifier si les données utilisateur sont valides
         if not isinstance(user_data, dict) or "email" not in user_data or "password" not in user_data:
             logging.error(f"Données utilisateur invalides à l'index {user_index}.")
             return False
 
-        # Remplir le formulaire de connexion
         input_email = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "j_username")))
         input_email.send_keys(user_data["email"])
         logging.info(f"Adresse e-mail '{user_data['email']}' remplie avec succès !")
@@ -257,13 +245,15 @@ def click_cart_icon(driver):
 
 
 def main():
-    # for i in range(500):
-    #   user_data = generate_user_data()
-    #   save_user_data(user_data)
-    # register(driver)
-    login(driver)
-#   navigation.click_cart_icon(driver)
+    users = load_user_data("users.json") 
 
+    for i, user in enumerate(users):
+        logging.info(f"Création du compte {i + 1}/{len(users)} : {user['email']}")
+        register(driver, i) 
+        time.sleep(10)
+
+
+    # login(driver)
 
 if __name__ == "__main__":
     main()

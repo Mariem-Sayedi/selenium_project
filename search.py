@@ -23,7 +23,6 @@ driver.maximize_window()
 def search(driver, file="sous_sous_categories.json"): 
     driver.get(BASE_URL)
     try:
-        # Charger les sous-sous-catégories enregistrées
         with open(file, "r", encoding="utf-8") as f:
             sub_sub_categories = json.load(f)
 
@@ -31,12 +30,10 @@ def search(driver, file="sous_sous_categories.json"):
             print("Aucun produit trouvé dans le fichier !")
             return False
 
-        # Choisir une catégorie aléatoire
         query = random.choice(sub_sub_categories)
 
 
        
-        # Remplir la barre de recherche avec la catégorie choisie
         try:
            input_search = WebDriverWait(driver, 30).until(
            EC.presence_of_element_located((By.ID, "search"))
@@ -93,17 +90,14 @@ def gerer_popup_geolocalisation(driver):
             input_element.send_keys(Keys.RETURN)
             print("Valeur de localisation entrée avec succès !")
 
-            # Accepter les cookies à nouveau au cas où il apparaît maintenant
             accepter_cookies(driver)
 
-            # Cliquer sur "Choisir ce magasin"
             choisir_magasin_btn = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@class='btn']/a[contains(text(), 'Choisir')]"))
             )
             choisir_magasin_btn.click()
             print("Bouton 'Choisir ce magasin' cliqué avec succès !")
 
-            # Attendre la fermeture du popup
             WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.ID, "popup_geoloc")))
             print("Popup de géolocalisation géré avec succès.")
 

@@ -44,17 +44,14 @@ def gerer_popup_geolocalisation(driver):
             input_element.send_keys(Keys.RETURN)
             print("Valeur de localisation entrée avec succès !")
 
-            # Accepter les cookies à nouveau au cas où il apparaît maintenant
             accepter_cookies(driver)
 
-            # Cliquer sur "Choisir ce magasin"
             choisir_magasin_btn = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@class='btn']/a[contains(text(), 'Choisir')]"))
             )
             choisir_magasin_btn.click()
             print("Bouton 'Choisir ce magasin' cliqué avec succès !")
 
-            # Attendre la fermeture du popup
             WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.ID, "popup_geoloc")))
             print("Popup de géolocalisation géré avec succès.")
 

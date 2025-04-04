@@ -22,11 +22,9 @@ driver.maximize_window()
 
 def main():
 
-  # Étape 1: Ouvrir la page d'accueil
   driver.get(BASE_URL)
   time.sleep(2)
 
-# Gérer le popup de géolocalisation
   
 navigation.choisir_sous_sous_categorie(driver)
 search.search(driver)
@@ -48,7 +46,6 @@ search.search(driver)
 
 
 
-# Fermer le navigateur
 # driver_manager.quit_driver(driver)
 
 if __name__ == "__main__":

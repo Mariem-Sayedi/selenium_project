@@ -10,12 +10,15 @@ import driver_manager
 import json
 import account_manager
 from selenium.webdriver.support.ui import Select
-
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
+import os
 
 driver = driver_manager.create_driver()
 
 BASE_URL = driver_manager.get_base_url()
 driver.maximize_window()
+wait = WebDriverWait(driver, 10)
 
 
 
@@ -56,17 +59,14 @@ def gerer_popup_geolocalisation(driver):
             input_element.send_keys(Keys.RETURN)
             print("Valeur de localisation entrée avec succès !")
 
-            # Accepter les cookies à nouveau au cas où il apparaît maintenant
             accepter_cookies(driver)
 
-            # Cliquer sur "Choisir ce magasin"
             choisir_magasin_btn = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, "//div[@class='btn']/a[contains(text(), 'Choisir')]"))
             )
             choisir_magasin_btn.click()
             print("Bouton 'Choisir ce magasin' cliqué avec succès !")
 
-            # Attendre la fermeture du popup
             WebDriverWait(driver, 10).until(EC.invisibility_of_element_located((By.ID, "popup_geoloc")))
             print("Popup de géolocalisation géré avec succès.")
 
@@ -128,8 +128,7 @@ def choisir_sous_categorie(driver):
 
 
 
-import json
-import os
+
 
 def choisir_sous_sous_categorie(driver):
     """Ajoute les sous-sous-catégories au fichier JSON sans écrasement."""
@@ -154,27 +153,21 @@ def choisir_sous_sous_categorie(driver):
 
         fichier_json = "sous_sous_categories.json"
 
-        # Charger l'ancien contenu du fichier (s'il existe)
         anciens_noms = []
         if os.path.exists(fichier_json):
             with open(fichier_json, "r", encoding="utf-8") as f:
                 try:
                     anciens_noms = json.load(f)
                 except json.JSONDecodeError:
-                    pass  # Si le fichier est vide ou corrompu, on ignore
+                    pass  
 
-        # Ajouter sans doublons
         tous_les_noms = list(set(anciens_noms + nouveaux_noms))
 
-        # Sauvegarder
         with open(fichier_json, "w", encoding="utf-8") as f:
             json.dump(tous_les_noms, f, ensure_ascii=False, indent=4)
 
-        # Choisir une sous-sous-catégorie au hasard et cliquer dessus
         random_sub_sub_category = random.choice(valid_sub_sub_category_links)
-        # driver.execute_script("arguments[0].click();", random_sub_sub_category)
         random_sub_sub_category.click()
-        # print(f"Sous-sous-catégorie cliquée : {random_sub_sub_category.text}")
 
     except (NoSuchElementException, TimeoutException) as e:
         print(f"Erreur lors de la sélection de la sous-sous-catégorie : {e}")
@@ -233,14 +226,11 @@ def click_cart_icon(driver):
 
 
 def remplir_champ_avec_selection(name, valeur):
-    # Trouver le champ et taper la valeur
     champ = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, name)))
     champ.send_keys(valeur)
 
-    # Attendre l'affichage du menu déroulant
     WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CLASS_NAME, "dropdown-menu")))
 
-    # Sélectionner la première option dans la liste
     premiere_option = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".dropdown-menu li:first-child")))
     premiere_option.click()
 
@@ -290,27 +280,24 @@ def main():
   EC.element_to_be_clickable((By.LINK_TEXT, "Valider"))
   )
   button_validation2.click()
+  checkbox = driver.find_element(By.CLASS_NAME, "cdg-paiement sale-terms-checked")
+  print(checkbox)
+
   
+  checkbox = driver.find_element(By.ID, "test")
 
-
-  try:
-       # Localiser la checkbox
-    checkbox = WebDriverWait(driver, 50).until(
-    EC.element_to_be_clickable((By.ID, "test"))
-)
-
-# Cliquer sur la checkbox
+  if not checkbox.is_selected():
     checkbox.click()
 
-# Vérifier l'état de la checkbox
-    if checkbox.is_selected():
-        print("La checkbox est cochée.")
-    else:
-        print("La checkbox n'est pas cochée.")
-# Click on the checkbox element
-        # checkbox.click()
+  actions = ActionChains(driver)
+  actions.move_to_element(checkbox).click().perform()
 
-#         # Attendre que le bouton de paiement soit présent et visible
+
+  assert checkbox.is_selected(), "La case des CGV n'a pas été cochée !"
+ 
+
+
+
 #         button_pay2 = WebDriverWait(driver, 30).until(
 #             EC.visibility_of_element_located((By.CLASS_NAME, "cta-principal cta-desactive"))
 #         )
@@ -319,12 +306,12 @@ def main():
 #         driver.execute_script("arguments[0].click();", button_pay2)
 #         print("Bouton de paiement cliqué avec succès !")
 
-  except TimeoutException:
-        print("Erreur : L'iframe, la case à cocher ou le bouton de paiement n'a pas été trouvé dans le temps imparti.")
-  except NoSuchElementException:
-        print("Erreur : L'élément n'a pas été trouvé.")
-  except Exception as e:
-        print(f"Erreur paiement : {e}")
+#   except TimeoutException:
+#         print("Erreur : L'iframe, la case à cocher ou le bouton de paiement n'a pas été trouvé dans le temps imparti.")
+#   except NoSuchElementException:
+#         print("Erreur : L'élément n'a pas été trouvé.")
+#   except Exception as e:
+#         print(f"Erreur paiement : {e}")
 
 
   button_pay2 = WebDriverWait(driver, 20).until(
