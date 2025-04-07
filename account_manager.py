@@ -84,9 +84,9 @@ def register(driver, user_index, json_path="users.json"):
     """Remplit le formulaire de connexion avec les données d'un utilisateur."""
 
     
-    time.sleep(130)
+    time.sleep(100)
     gerer_popup_geolocalisation(driver)
-    time.sleep(80)
+    time.sleep(70)
 
     try:
         users = load_user_data(json_path)
@@ -153,7 +153,7 @@ def register(driver, user_index, json_path="users.json"):
 
 
 
-def login(driver, user_index=0, json_path="users6.json"):
+def login(driver, user_index=0, json_path="users.json"):
     driver.get(LOGIN_URL)
      
     time.sleep(10)
