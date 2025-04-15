@@ -8,11 +8,12 @@ import random
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import driver_manager
 import json
-import account_manager
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.action_chains import ActionChains
 import os
+import logging
+
 
 driver = driver_manager.create_driver()
 
@@ -20,6 +21,7 @@ BASE_URL = driver_manager.get_base_url()
 driver.maximize_window()
 wait = WebDriverWait(driver, 10)
 
+LOGIN_URL = "https://local.lafoirfouille.fr:3012/login"
 
 
 
@@ -55,7 +57,7 @@ def gerer_popup_geolocalisation(driver):
                 EC.presence_of_element_located((By.ID, "locationForSearch"))
             )
             input_element.clear()
-            input_element.send_keys("13000")
+            input_element.send_keys("thiais")
             input_element.send_keys(Keys.RETURN)
             print("Valeur de localisation entrée avec succès !")
 
@@ -88,7 +90,7 @@ def gerer_popup_geolocalisation(driver):
 def cliquer_menu(driver):
     """Clique sur l'icône du menu."""
     try:
-        menu_element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//div[contains(@class, 'header-menu content-slot-lp')]")))
+        menu_element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(@class, 'icon') and contains(@class, 'header-menu')]")))
         menu_element.click()
         print("Menu cliqué avec succès !")
     except Exception as e:
@@ -97,7 +99,7 @@ def cliquer_menu(driver):
 
 
 
-def choisir_categorie(driver):
+def choisir_categorie_alea(driver):
     """Choisit une catégorie au hasard dans le menu."""
     try:
         main_menu = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "ul.menu")))
@@ -111,7 +113,7 @@ def choisir_categorie(driver):
 
 
 
-def choisir_sous_categorie(driver):
+def choisir_sous_categorie_alea(driver):
     """Choisit une sous-catégorie au hasard."""
     try:
         main_menu = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "ul.menu")))
@@ -178,8 +180,6 @@ def choisir_sous_sous_categorie(driver):
 def choisir_produit_aleatoire(driver):
     """Choisit et clique sur un produit au hasard."""
     try:
-        while gerer_popup_geolocalisation(driver):
-            time.sleep(2)
         produits = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "produit")))
         if produits:
             produit_aleatoire = random.choice(produits)
@@ -254,46 +254,149 @@ def verifier_presence_iframe(driver):
 
 
 
+def load_user_data(filename="users600_cabries.json"):
+    """Charge les informations utilisateur à partir d'un fichier JSON."""
+    try:
+        with open(filename, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        logging.warning(f"Fichier {filename} non trouvé. Retourne une liste vide.")
+        return []
+    except json.JSONDecodeError:
+        logging.error(f"Erreur de décodage JSON dans {filename}. Assurez-vous que le fichier contient du JSON valide.")
+        return []
+    
+
+def login(driver, user_index=35, json_path="users600_GAP.json"):
+    driver.get(LOGIN_URL)
+     
+    time.sleep(10)
+    gerer_popup_geolocalisation(driver)
+    time.sleep(10)
+
+    """Remplit le formulaire de connexion avec les données d'un utilisateur."""
+    try:
+        users = load_user_data(json_path)
+
+        if not isinstance(users, list) or user_index >= len(users):
+            logging.error("Index utilisateur invalide ou fichier JSON non valide.")
+            return False
+
+        user_data = users[user_index]
+
+        if not isinstance(user_data, dict) or "email" not in user_data or "password" not in user_data:
+            logging.error(f"Données utilisateur invalides à l'index {user_index}.")
+            return False
+
+        input_email = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "j_username")))
+        input_email.send_keys(user_data["email"])
+        logging.info(f"Adresse e-mail '{user_data['email']}' remplie avec succès !")
+
+        gerer_popup_geolocalisation(driver)
+
+        
+        bouton_valider1 = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "next_button")))
+        bouton_valider1.click()
+        logging.info("Bouton 'VALIDER' 1 cliqué avec succès !")
+
+        input_password = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "j_password")))
+        input_password.clear()
+        input_password.send_keys(user_data["password"])
+        logging.info("Champ mot de passe rempli avec succès !")
+
+        bouton_connexion = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "valid_button")))
+        bouton_connexion.click()
+        logging.info("Bouton de connexion cliqué avec succès !")
+
+        return True
+
+    except (TimeoutException, NoSuchElementException) as e:
+        logging.error(f"Élément introuvable ou délai d'attente dépassé : {e}")
+        return False
+
+    except Exception as e:
+        logging.error(f"Erreur lors du remplissage du formulaire : {e}")
+        return False
+   
+
+
+
+def search(driver, file="sous_sous_categories.json"): 
+    try:
+        with open(file, "r", encoding="utf-8") as f:
+            sub_sub_categories = json.load(f)
+
+        if not sub_sub_categories:
+            print("Aucun produit trouvé dans le fichier !")
+            return False
+
+        query = random.choice(sub_sub_categories)
+        try:
+           input_search = WebDriverWait(driver, 30).until(
+           EC.presence_of_element_located((By.ID, "search"))
+        )
+           print("Champ de recherche trouvé.")
+        except TimeoutException:
+          print("Champ de recherche introuvable ! Vérifie le sélecteur CSS.")
+          return False
+        input_search.clear()
+        input_search.send_keys(query)
+        input_search.send_keys(Keys.RETURN)
+        
+        print(f"Recherche effectuée pour : {query}")
+        return True
+
+    except Exception as e:
+        print(f"Erreur de recherche : {e}")
+        return False
+
+
+
 def main():
   
-  driver.get(BASE_URL)
-  time.sleep(2)
-  if gerer_popup_geolocalisation(driver):
-        time.sleep(30)
-    # Naviguer dans le menu et choisir les catégories
-#   cliquer_menu(driver)
+#   users = load_user_data("users600_GAP.json") 
 
-#   for i in range(5):
-#     choisir_categorie(driver)
-#     choisir_sous_categorie(driver)
-#     choisir_sous_sous_categorie(driver)
-#     choisir_produit_aleatoire(driver)
-#     ajouter_au_panier(driver)
-  click_cart_icon(driver)
-  account_manager.login(driver)
-  button_validation1 = WebDriverWait(driver, 10).until(
-  EC.element_to_be_clickable((By.LINK_TEXT, "VALIDER"))
-    )
-  button_validation1.click()
+  login(driver) 
+  time.sleep(3)
+       
+  for j in range(5):
+      search(driver)
+      choisir_produit_aleatoire(driver)
+      cliquer_menu(driver)
+      choisir_categorie_alea(driver)
+      choisir_sous_categorie_alea(driver)
+      choisir_sous_sous_categorie(driver)
+      choisir_produit_aleatoire(driver)
+      ajouter_au_panier(driver)
+        
+  driver.quit()
 
-  button_validation2 = WebDriverWait(driver, 10).until(
-  EC.element_to_be_clickable((By.LINK_TEXT, "Valider"))
-  )
-  button_validation2.click()
-  checkbox = driver.find_element(By.CLASS_NAME, "cdg-paiement sale-terms-checked")
-  print(checkbox)
+
+#   click_cart_icon(driver)
+#   account_manager.login(driver)
+#   button_validation1 = WebDriverWait(driver, 10).until(
+#   EC.element_to_be_clickable((By.LINK_TEXT, "VALIDER"))
+#     )
+#   button_validation1.click()
+
+#   button_validation2 = WebDriverWait(driver, 10).until(
+#   EC.element_to_be_clickable((By.LINK_TEXT, "Valider"))
+#   )
+#   button_validation2.click()
+#   checkbox = driver.find_element(By.CLASS_NAME, "cdg-paiement sale-terms-checked")
+#   print(checkbox)
 
   
-  checkbox = driver.find_element(By.ID, "test")
+#   checkbox = driver.find_element(By.ID, "test")
 
-  if not checkbox.is_selected():
-    checkbox.click()
+#   if not checkbox.is_selected():
+#     checkbox.click()
 
-  actions = ActionChains(driver)
-  actions.move_to_element(checkbox).click().perform()
+#   actions = ActionChains(driver)
+#   actions.move_to_element(checkbox).click().perform()
 
 
-  assert checkbox.is_selected(), "La case des CGV n'a pas été cochée !"
+#   assert checkbox.is_selected(), "La case des CGV n'a pas été cochée !"
  
 
 
@@ -314,10 +417,10 @@ def main():
 #         print(f"Erreur paiement : {e}")
 
 
-  button_pay2 = WebDriverWait(driver, 20).until(
-  EC.element_to_be_clickable((By.CLASS_NAME, "cta-principal cta-desactive"))
-  )
-  button_pay2.click()
+#   button_pay2 = WebDriverWait(driver, 20).until(
+#   EC.element_to_be_clickable((By.CLASS_NAME, "cta-principal cta-desactive"))
+#   )
+#   button_pay2.click()
 # except Exception as e:
 #        print(f"Erreur paiement : {e}")
     

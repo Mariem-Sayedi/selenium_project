@@ -86,7 +86,7 @@ def gerer_popup_geolocalisation(driver):
                 EC.presence_of_element_located((By.ID, "locationForSearch"))
             )
             input_element.clear()
-            input_element.send_keys("13000")
+            input_element.send_keys("5000")
             input_element.send_keys(Keys.RETURN)
             print("Valeur de localisation entrée avec succès !")
 
