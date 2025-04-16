@@ -10,7 +10,11 @@ BASE_URL = "https://local.lafoirfouille.fr:3012/"
 def create_driver():
     """Crée et renvoie une instance de WebDriver."""
     options = Options()
-    # options.ignore_local_proxy_environment_variables()
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--remote-debugging-port=9222")
+    options.add_argument("--disable-gpu")  
+    options.ignore_local_proxy_environment_variables()
     options.add_experimental_option("detach", True) 
     driver = webdriver.Chrome(options=options)
     WebDriverWait(driver, 10).until(lambda d: d.execute_script('return document.readyState') == 'complete')

@@ -15,8 +15,6 @@ from popups import gerer_popup_geolocalisation
 
 REGISTER_URL = "https://local.lafoirfouille.fr:3012/register"
 LOGIN_URL = "https://local.lafoirfouille.fr:3012/login"
-MY_ACCOUNT_URL = "https://local.lafoirfouille.fr:3012/my-account"
-BASE_URL = "https://local.lafoirfouille.fr:3012"
 
 driver = driver_manager.create_driver()
 driver.maximize_window()
@@ -155,12 +153,12 @@ def register(driver, user_index, json_path="users.json"):
 
 
 
-def login(driver, url, user_index=1, json_path="users600_cabries.json"):
-    driver.get(url)
+def login(driver, user_index=0, json_path="users.json"):
+    driver.get(LOGIN_URL)
      
-    time.sleep(20)
+    time.sleep(10)
     gerer_popup_geolocalisation(driver)
-    time.sleep(20)
+    time.sleep(40)
 
     """Remplit le formulaire de connexion avec les données d'un utilisateur."""
     try:
@@ -179,9 +177,6 @@ def login(driver, url, user_index=1, json_path="users600_cabries.json"):
         input_email = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "j_username")))
         input_email.send_keys(user_data["email"])
         logging.info(f"Adresse e-mail '{user_data['email']}' remplie avec succès !")
-
-        gerer_popup_geolocalisation(driver)
-
         
         bouton_valider1 = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "next_button")))
         bouton_valider1.click()
@@ -246,33 +241,19 @@ def click_cart_icon(driver):
 
 
 
-def logout(driver, user_index=1, json_path="users600_cabries.json"):
-    driver.get(BASE_URL)
-    time.sleep(20)
-    gerer_popup_geolocalisation(driver)
-    time.sleep(5)
-    try:
-        account_element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, "//img[@alt='Mon compte']/parent::a")))
-        account_element.click()
-        print("account_element cliqué avec succès !")
-    except Exception as e:
-        print(f"Erreur lors du clic sur le account_element : {e}")
-
-    
 
 
 
 def main():
     users = load_user_data("users.json") 
 
-    # for i, user in enumerate(users):
-    #     logging.info(f"Création du compte {i + 1}/{len(users)} : {user['email']}")
-    #     register(driver, i) 
-    #     time.sleep(10)
+    for i, user in enumerate(users):
+        logging.info(f"Création du compte {i + 1}/{len(users)} : {user['email']}")
+        register(driver, i) 
+        time.sleep(10)
 
 
     # login(driver)
-    logout(driver)
 
 if __name__ == "__main__":
     main()
