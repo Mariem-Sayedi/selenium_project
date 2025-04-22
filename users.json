@@ -37,6 +37,15 @@
         "phone_number": "0612345678"
     },
     {
+        "email": "michelbecker@example.org",
+        "password": "+*L(N_h(_$8^",
+        "gender": "Female",
+        "first_name": "Laurence",
+        "last_name": "Joly",
+        "birthday": "1954-01-23",
+        "phone_number": "0612345678"
+    },
+    {
         "email": "guillaumelaroche@example.net",
         "password": ")(6*^O$x%@!8",
         "gender": "Male",

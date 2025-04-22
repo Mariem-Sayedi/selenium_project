@@ -57,7 +57,7 @@ def gerer_popup_geolocalisation(driver):
                 EC.presence_of_element_located((By.ID, "locationForSearch"))
             )
             input_element.clear()
-            input_element.send_keys("thiais")
+            input_element.send_keys("halluin")
             input_element.send_keys(Keys.RETURN)
             print("Valeur de localisation entrée avec succès !")
 
@@ -267,7 +267,7 @@ def load_user_data(filename="users600_cabries.json"):
         return []
     
 
-def login(driver, user_index=35, json_path="users600_GAP.json"):
+def login(driver, user_index=12, json_path="users_thiais_cabries.json"):
     driver.get(LOGIN_URL)
      
     time.sleep(10)
@@ -359,7 +359,7 @@ def main():
   login(driver) 
   time.sleep(3)
        
-  for j in range(5):
+  for j in range(15):
       search(driver)
       choisir_produit_aleatoire(driver)
       cliquer_menu(driver)

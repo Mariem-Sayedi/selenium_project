@@ -253,7 +253,7 @@ def main():
         time.sleep(10)
 
 
-    # login(driver)
+# login(driver)
 
 if __name__ == "__main__":
     main()
